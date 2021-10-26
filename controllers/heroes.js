@@ -38,7 +38,7 @@ const getAllSuperheroes = async (req, res, next) => {
 const createSuperhero = async (req, res, next) => {
   try {
     const hero = await createHero(req.body)
-    res.status(HttpCode.CREATED).json({
+    return res.status(HttpCode.CREATED).json({
       status: 'success',
       code: HttpCode.CREATED,
       data: {
@@ -101,7 +101,7 @@ const images = async (req, res, next) => {
     const heroId = req.params.heroId
     const { secure_url: imageUrl } = await saveAvatarToCloud(req)
     await updateHeroImage(heroId, imageUrl)
-    return res.json({
+    return res.status(HttpCode.OK).json({
       status: 'success',
       code: HttpCode.OK,
       data: {

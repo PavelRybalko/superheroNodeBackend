@@ -27,7 +27,7 @@ module.exports.UploadAvatar = (req, res, next) => {
       res.status(HttpCode.BAD_REQUEST).json({
         status: 'error',
         code: HttpCode.BAD_REQUEST,
-        message: 'Field AvatarURL with file is not found',
+        message: 'Field imageURL with file is not found',
       })
     )
   }

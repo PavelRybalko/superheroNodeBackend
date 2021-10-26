@@ -15,8 +15,11 @@ router
   .delete('/:id', heroesController.removeSuperhero)
 
 router.patch(
-  '/images/:heroId',
-  [upload.single('image'), validation.UploadAvatar],
+  '/image/:heroId',
+  [
+    upload.single('image'),
+    // validation.UploadAvatar
+  ],
   heroesController.images
 )
 
