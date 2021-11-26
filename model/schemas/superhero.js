@@ -28,10 +28,6 @@ const superheroSchema = new Schema(
       type: Array,
       set: (data) => (!data ? [] : data),
     },
-    // ImagesIdCloud: {
-    //   type: Array,
-    //   set: (data) => (!data ? [] : data),
-    // },
   },
   {
     versionKey: false,

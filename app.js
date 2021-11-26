@@ -23,7 +23,7 @@ app.use(
   })
 )
 app.use(helmet())
-app.use(express.json({ limit: jsonLimit }))
+app.use(express.json({ limit: jsonLimit, extended: true }))
 app.use('/api/heroes', heroesRouter)
 
 app.use((req, res) => {

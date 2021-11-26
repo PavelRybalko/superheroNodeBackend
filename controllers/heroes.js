@@ -8,7 +8,6 @@ const {
   updateHeroById,
   removeHeroById,
   updateHeroImage,
-  // updateHeroByField,
 } = require('../model/heroes')
 const { HttpCode } = require('../helpers/constants')
 
@@ -73,10 +72,29 @@ const updateSuperhero = async (req, res, next) => {
   }
 }
 
+const deleteAllImages = async (images) => {
+  images.forEach(async (img) => {
+    const publicId = img.split('/').slice(-3)
+    publicId[2] = publicId[2].slice(0, publicId[2].lastIndexOf('.'))
+    await cloudinary.uploader.destroy(publicId.join('/'), (err, result) => {
+      console.log(err, result)
+    })
+  })
+}
+
 const removeSuperhero = async (req, res, next) => {
   try {
     const hero = await removeHeroById(req.params.id)
+
     if (hero) {
+      let folderPublicId
+      if (hero.Images.length > 0) {
+        folderPublicId = hero.Images[0].split('/').slice(-3, 2).join('/')
+        await deleteAllImages(hero.Images)
+      }
+      cloudinary.api.delete_folder(folderPublicId, (err, result) => {
+        console.log(err, result)
+      })
       return res.status(HttpCode.OK).json({
         status: 'success',
         code: HttpCode.OK,
@@ -99,6 +117,17 @@ const removeSuperhero = async (req, res, next) => {
 const images = async (req, res, next) => {
   try {
     const heroId = req.params.heroId
+    const publicId = req.body.prevImagePublicId
+    if (!req.file && publicId) {
+      await updateHeroImage(heroId)
+      await cloudinary.uploader.destroy(publicId, (err, result) => {
+        console.log(err, result)
+      })
+      return res.status(HttpCode.OK).json({
+        status: 'success',
+        code: HttpCode.OK,
+      })
+    }
     const { secure_url: imageUrl } = await saveAvatarToCloud(req)
     await updateHeroImage(heroId, imageUrl)
     return res.status(HttpCode.OK).json({
@@ -116,18 +145,22 @@ const images = async (req, res, next) => {
 const saveAvatarToCloud = async (req) => {
   const pathFile = req.file.path
   const result = await uploadCloud(pathFile, {
-    public_id: req.file.originalname
+    public_id: `Superheroes/${req.body.heroName}/${req.file.filename
       .split('.')
       .reverse()
       .slice(1)
       .reverse()
-      .join('.'),
-    folder: 'Superheroes',
+      .join('.')}`,
   })
-  // cloudinary.uploader.destroy(req.hero.ImagesIdCloud, (err, result) => {
-  //   console.log(err, result)
-  // })
   try {
+    req.body.previousImagePublicId &&
+      (await cloudinary.uploader.destroy(
+        req.body.previousImagePublicId,
+        (err, result) => {
+          console.log(err, result)
+        }
+      ))
+
     await fs.unlink(pathFile)
   } catch (e) {
     console.log(e.message)

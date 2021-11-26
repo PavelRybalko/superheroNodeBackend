@@ -1,25 +1,17 @@
 const Superhero = require('./schemas/superhero')
 
-const getAll = async ({
-  // sortBy,
-  // sortByDesc,
-  // filter,
-  limit = '5',
-  offset = '0',
-  // page = '1',
-}) => {
-  const results = await Superhero.paginate('', {
-    limit,
-    // sort: {
-    //   ...(sortBy ? { [`${sortBy}`]: 1 } : {}),
-    //   ...(sortByDesc ? { [`${sortByDesc}`]: -1 } : {}),
-    // },
-    offset,
-    // select: filter ? filter.split('|').join(' ') : ' ',
-  })
+const getAll = async ({ query = '', limit = '5', page = '1' }) => {
+  const regex = new RegExp(query, 'i')
+  const results = await Superhero.paginate(
+    { nickname: { $regex: regex } },
+    {
+      limit,
+      page,
+    }
+  )
 
   const { docs: heroes, totalDocs: total } = results
-  return { total: total.toString(), limit, offset, heroes }
+  return { total: total.toString(), limit, page, heroes }
 }
 
 const createHero = async (body) => {
@@ -39,12 +31,9 @@ const updateHeroByField = async (field, updateData) => {
   return await Superhero.findOneAndUpdate(field, updateData, { new: true })
 }
 
-const updateHeroImage = async (id, Images) => {
-  return await Superhero.updateOne(
-    { _id: id },
-    { $addToSet: { Images } },
-    { new: true }
-  )
+const updateHeroImage = async (id, image) => {
+  const Images = !image ? [] : [image]
+  return await Superhero.updateOne({ _id: id }, { Images }, { new: true })
 }
 
 module.exports = {
